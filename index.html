@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>webpack配置</title>
+  <p>webpack基础配置</p>
+  <p>1，使用npm命令： npm init 一路回车会将根文件夹变成项目名称 最后输入yes完成package.json的生成</p>
+  <p>2，新建webpack.config.js文件
+    const path = require('path')//npm init导入的node包
+    module.exports = {
+      entry: './src/main.js',//入口文件
+      output: {
+        path: path.resolve(__dirname,'dist'),//编译后文件路径
+        filename: 'bundle.js'
+      }
+    }
+  </p>
+  <p>3，使用全局webpack构建，即在终端输入webpack命令就可以了</p>
+  <p>4，package.jsonwen文件中的script中乐意映射webpack命令，即在
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "build": "webpack"//增加这行代码 就可以使用 npm run build 命令编译文件
+    }
+  </p>
+  <p>5，定义在scripts的'webpack'与终端的webpack有区别，npm run build 优先使用局部webpack进行编译构建</p>
+  <p>6，安装局部webpack 可以用npm进行安装，在当前项目路径下 输入：npm install webpack@3.6.0 --save-dev 进行安装局部webpack '--save-dev' 为 开发时依赖</p>
+  <p>7，开发时依赖和运行时依赖的区别：开发时依赖指在开发项目时需要的依赖，运行时依赖指在项目运行时的依赖，因为webpack本身在运行时是不需要依赖的，只有在开发时需要该依赖</p>
+  <p>8，执行完命令后在package会生成以下代码，在开发时环境有该插件
+    "devDependencies": {
+      "webpack": "^3.6.0"
+    }
+  </p>
+  <p>css文件load配置</p>
+  <p>1，新建css文件夹写一个css样式文件这个时候是无法引用的</p>
+  <P>3，css-loader负责加载样式，style-loader负责渲染样式</P>
+  <p>4，安装css-loader和style-loader命令： npm install --save-dev css-loader,npm install --save-dev style-loader</p>
+  <p>注：安装css-loader时注意版本最好安装3.6.0版本，版本太高webpack构建时报错</p>
+  <p>5，在webpack.config.js里配置，代码如下：
+    module: {
+      rules: [
+        {
+          test: /\.css$/,//正则表达式。\.开始，css结束
+          use: ['style-loader','css-loader']//从右往左读
+        }
+      ]
+    }
+  </p>
+  <p>6，webpack读取多个loader时从右向左读</p>
+  <p>7，所有安装的插件都可以在package.json文件中查询到包括版本号</p>
+  <p>less文件load配置</p>
+  <p>1，在css文件夹下新建一个less文件，这个时候是无法引用的</p>
+  <p>2，需要安装两个插件less和less-loader这两个插件</p>
+  <p>3，终端输入命令：npm install less@3.9.0 less-loader5.0.0 --save-dev</p>
+  <p>注：版本太高，webpack构建会报错</p>
+  <p>4，在webpack.config.js中配置相关插件代码如下：
+    {
+      test: /\.less$/i,//正则匹配.less结尾的文件
+      use: [//自下而上
+        {
+          loader: 'style-loader'//最后加载
+        },
+        {
+          loader: 'css-loader'//后加载
+        },
+        {
+          loader: 'less-loader'//先加载
+        }
+      ]
+    },
+  </p>
+  <p>5，最后在main.js引用 require('./css/special.less');</p>
+  <p>6，执行npm run build 执行构建</p>
+  <p>图片的load配置</p>
+  <p>1，在src目录下新建一个img目录，存放部分图片</p>
+  <p>2，在css文件中引用该图片作为背景，这个时候编译是报错的</p>
+  <p>3，需要安装url-load插件，命令：npm install url-load --save-dev</p>
+  <p>注：url-load的安装不会在package.json中展现</p>
+  <p>4，在webpack.config.js中进行配置，具体代码如下：
+    {
+      test: /\.(png|jpg|gif|jpeg)$/i,
+      use: [
+        {
+          loader: 'url-loader',
+          options: {
+            //当加载图片时，小于limit 会将图片编译成base64字符串形式。
+            //当加载图片时，大于limit,需要使用file-loader模块进行加载。
+            limit: 8196,
+          },
+        },
+  </p>
+  <p>注：值得注意的是limit该变量指定一个字节单位的数字衡量图片的大小。
+    （1）如果小于该变量，将图片编译成base64字符串形式，不需要使用file-loader插件
+    （2）如果大于该变量。需要使用file-loader模块进行加载
+  </p>
+  <p>5，当图片的容量小于指定变量时，可以直接使用 npm run build编译</p>
+  <p>6，当图片的容量大于指定变量时，需要使用file-loader插件，命令： npm install file-loader@2.0.0 --save-dev</p>
+  <p>注：不指定版本会使用最新的插件，webpack构建不通过</p>
+  <p>7，安装好之后需要进行配置，webpack.config.js中limit下面有这行配置：
+    //自定义命名图片路径，img文件夹 [原图片名称].[hash:哈希值截取前8位].[扩展名]
+    name: 'img/[name].[hash:8].[ext]'
+  </p>
+  <p>8，配置完成后进行构建：npm run build</p>
+  <p>9，这时进项测试发现图片404,原因是当前index.html地址与css中引用地址错误，解决这个问题可以在webpack.config.js进行补充：
+    publicPath: 'dist/'//地址加前缀
+  </p>
+  <p>10，背景图片能正常平铺</p>
+  <p>ES6转ES5配置</p>
+  <p>1，安装babel-loader babel-core babel-preset-ex2015插件，命令：npm install babel-lrader@7 babel-core babel-preset-es2015</p>
+  <p>注：babel-loader需要指定7版本，不指定版本默认安装最新版本，可能会出现问题</p>
+  <p>2，在webpack.config.js中进行配置，具体代码如下：
+    {
+      test: /\.js$/,
+      // exclude:排除
+      // include:包含
+      exclude: /(node_modules | bower_components)/,
+      use: {
+        loader: 'babel-loader',
+        options: {
+          presets: ['es2015']
+        }
+      }
+    }
+  </p>
+  <p>3，执行npm run build编译出来的js文件全是ES5语法</p>
+  <p>vue的配置</p>
+  <p>1，因为vue是需要在运行时环境使用的，安装指令：npm install vue --save</p>
+  <p>2，在main.js中导入vue import Vue from 'vue'</p>
+  <p>3，new 一个vue实例并挂载到html的某个div中，在data中初始化一个变量msg</p>
+  <p>4，配置vue,可以在webpack.config.js中配置，配置代码如下：
+    resolve: {
+      //alias:别名
+      alias: {
+        'vue$': 'vue/dist/vue.esm.js'
+      }
+    }
+  </p>
+  <p>注：如果不进行配置，浏览器会报错，因为默认引用node_mudeule中vue的vue.min.js这是运行时vuejs不能解析template。
+    需要重新指定一个vuejs指向vue.esm.js这样可以编译template
+  </p>
+  <p>5，一般情况下，我们在div中定义一个id,让我们的vue去挂载，但是这个vue实例中有tempalte将会替换定义id的div</p>
+  <p>6，npm run build编译构建</p>
+  <p>vue的终极配置（核心内容）</p>
+  <p>1，上面我们已经知道了vue的基本配置，下面我们利用组件化和模块的思想一步一步完成终极使用</p>
+  <p>2，上面内容我们已经知道在main.js中template在vue实例中，这样耦合度高，我们剥离template代码如：main.js中配置，配置代码如下：
+    const app = {
+      template:`
+        <div>
+          <h2>{{msg}}</h2>
+        </div>
+      `,
+      data(){
+        return {
+          msg: '我来自cgl组件'
+        }
+      }
+    }
+    
+    //使用vue
+    new Vue({
+      el: '#app',
+      data: {
+        msg: '我是根来自main.js'
+      },
+      template: '<app />',
+      components: {
+        app
+      }
+    })
+  </p>
+  <p>3，我们发现耦合度还是很高，我们进一步剥离，使用模块化思想将js代码剥离出main.js，我们可以这样做</p>
+  <p>（1）将组件app写在一个单独的js页面，通过模块化导入导出使用</p>
+  <p>（2）定义目录vue写一个app.js里配置，代码如下：
+    export default {
+      template:`
+        <div>
+          <h2>{{msg}}</h2>
+        </div>
+      `,
+      data(){
+        return {
+          msg: '我来自cgl组件，来自app.js。'
+        }
+      }
+    }
+    main.js中导入组件并使用 代码：
+    import app from './vue/app'
+    //使用vue
+    new Vue({
+      el: '#app',
+      data: {
+        msg: '我是根来自main.js'
+      },
+      template: '<app />',
+      components: {
+        app
+      }
+    })  
+  </p>
+  <p>4，我们发现js中还要写html代码，还是比较复杂，我们想通过一种将html代码，js代码，css代码剥离的一种写法定义一个后缀名为vue的文件，在vue中定义app.vue,代码：
+    <template>
+      <div>
+        <h2 class="title">{{msg}}</h2>
+      </div>
+    </template>
+    
+    <script>
+      //这个项目预览报错的主要原因是这个只是代码演示，并非真的js脚本，浏览器不知道es6语法，需要加type='module'
+      export default {
+        name: 'app',
+        data(){
+          return{
+            msg: '我来自app组件，来自app.vue'
+          }
+        }
+      }
+    </script>
+    
+    <style scoped>
+      .title{
+        color: brown;
+      }
+    </style>
+  </p>
+  <p></p>
+  <p>5，在main.js导入 import app from './vue/app.vue';</p>
+  <p>6，我们发现编译报错，vue是特殊文件，webpack无法直接识别加载，需要配置loader</p>
+  <p>7，安装 vue-loader vue-template-compiler，指令：npm install vue-loader vue-template-compiler --save-dev</p>
+  <p>注：最新vue-loader需要额外的插件，我们不想使用插件，可以重新安装@13版本</p>
+  <p>8，配置vue-loader 在webpack.config.js中配置，配置代码如下：
+    {
+      test: /\.vue$/,
+      use: ['vue-loader']
+    }
+  </p>
+  <p>npm run build编译预览</p>
+  <p>9，这样就产生了原始的vue-cli</p>
+  <p>同理可以在app.vue中引入子组件，这样就形成了vue模块化开发</p>
+  <p>webpack的plugin</p>
+  <p>1，横幅插件：在webpack.config.js中引入webpack：const webpack = require('webpack') 配置一下在：如下,在编译可看见js有这个注释
+    //插件
+    plugins: [
+      //js编译后横幅
+      new webpack.BannerPlugin('最终版权归陈国梁所有')
+    ]
+  </p>
+  <p>2，html文件编译到dist插件 html-webpack-plugin：
+    （1）安装：npm install html-webpack-plugin@3.2.0 --save-dev 配置：
+    （2）引入：const HtmlWebpackPlugin = require('html-webpack-plugin');
+    （3）配置：
+      //html编译到dist文件目录
+      new HtmlWebpackPlugin({
+        //指定模板
+        template: 'index.html'
+      })
+      注：模板index.html不需要引入js，HtmlWebpackPlugin会帮助我们引入，需要修改地址前缀，注释publicPath: 'dist/'//地址加前缀
+  </p>
+  <p>3，js压缩插件uglifyjs：
+    （1）安装：npm install uglifyjs-webpack-plugin@1.1.1 --save-dev
+    （2）引入：const uglify = require('uglifyjs-webpack-plugin');//压缩js插件
+    （3）配置：new uglify()
+  </p>
+  <p>以上配置均在webpack.config.js引入配置</p>
+  <p>搭建本地服务</p>
+  <p>1，安装：npm install webpack-dev-server@2.9.1 --save-dev</p>
+  <p>2，配置：在webpack.config.js中配置,代码如下：
+    //本地开发服务
+    devServer: {
+      contentBase: './dist',
+      inline: true,//页面实时刷新
+      port: 8081//可以指定端口号，不指定 默认8080adsa
+    }
+  </p>
+  <P>3，在package.json中配置命令："dev": "webpack-dev-server"</P>
+</head>
+<body>
+  <div id="app">
+</div>
+</body>
+</html>
